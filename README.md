@@ -48,6 +48,17 @@ Your application submits tasks over HTTP to dispatchr. Publish confirms are enab
 Tasks are executed over HTTP by your application. Dispatchr takes care of the scheduling, prioritisation, backpressure, and retries.
 Have a separate lambda service you want to execute asynchronously? Submit a task to dispatchr with a URL target of your lambda service.
 
+Since dispatchr stores tasks in a database, you have full operational visibility into the state of the system. See which tasks are queued, the rate of task execution and submission, failed tasks and their payload, etc. Anyone that has ever tried to debug a failed task in traditional message queue based systems
+
+## Why wouldn't I use this?
+
+Since HTTP and Postgres are baked into the design of dispatchr, you should not use dispatchr if:
+
+- You have long-running tasks (somewhere > 1 minute) due to timeouts
+- You anticipate a volume of tasks that would overwhelm a single Postgres database. TODO: benchmarking to provide specific numbers/guidance.
+- You want strict [transactional enqueuing](https://riverqueue.com/docs/transactional-enqueueing). While River supports transactional enqueueing, dispatchr by design does not as it's deployed as a separate service.
+
+
 # Running dispatchr
 
 Build the binaries:
