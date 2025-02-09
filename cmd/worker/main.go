@@ -17,7 +17,7 @@ import (
 func main() {
 	ctx := context.Background()
 	worker := setupWorker(ctx)
-	for range 10 {
+	for range 5 {
 		dispatchr.AddTaskExample(ctx, worker)
 	}
 	shutdownHandler(ctx, worker)

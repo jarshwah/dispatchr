@@ -28,7 +28,7 @@ type DispatchJobWorker struct {
 }
 
 func (w *DispatchJobWorker) Work(ctx context.Context, job *river.Job[DispatchJob]) error {
-	fmt.Println("Dispatching job", job.ID, "to", job.Args.UrlTarget)
+	fmt.Println("Dispatching job", job.ID, "to", job.Args.UrlTarget, "with", job.Args.TaskName, "and", string(job.Args.TaskArgs))
 	return nil
 }
 

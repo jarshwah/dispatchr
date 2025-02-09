@@ -4,6 +4,12 @@
 			"path": "."
 		}
 	],
+    "extensions": {
+        "recommendations": [
+            "mkhl.direnv",
+            "golang.go"
+        ]
+    },
 	"settings": {
         "[go]": {
             "editor.insertSpaces": false,
@@ -31,7 +37,10 @@
                 "type": "go",
                 "request": "launch",
                 "mode": "auto",
-                "program": "${workspaceFolder}/cmd/worker"
+                "program": "${workspaceFolder}/cmd/worker",
+                "env": {
+                    "DATABASE_URL": "${env:DATABASE_URL}"
+                }
             }
         ]
     }
