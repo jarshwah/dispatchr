@@ -14,6 +14,11 @@ import (
 	"github.com/riverqueue/river"
 )
 
+// RiverClient interface captures the methods we use from river.Client
+type RiverClient interface {
+	Stop(ctx context.Context) error
+}
+
 func main() {
 	ctx := context.Background()
 	worker := setupWorker(ctx)
@@ -43,21 +48,19 @@ func setupWorker(ctx context.Context) *river.Client[pgx.Tx] {
 	return client
 }
 
-func shutdownHandler(ctx context.Context, client *river.Client[pgx.Tx]) {
-	go wait()
+func shutdownHandler(ctx context.Context, client RiverClient) {
 	shutdownChannel := make(chan os.Signal, 1)
 	signal.Notify(shutdownChannel, syscall.SIGINT, syscall.SIGTERM)
-	<-shutdownChannel
-	fmt.Fprintf(os.Stdout, "Shutting down\n")
+	sig := <-shutdownChannel
+	fmt.Fprintf(os.Stdout, "Received signal %v, shutting down\n", sig)
+
+	// Create a timeout context for graceful shutdown
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+
 	if err := client.Stop(ctx); err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to stop client: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Error during shutdown: %v\n", err)
 		os.Exit(1)
 	}
-	fmt.Fprintf(os.Stdout, "Client stopped\n")
-}
-
-func wait() {
-	for {
-		time.Sleep(time.Second)
-	}
+	fmt.Fprintf(os.Stdout, "Client stopped gracefully\n")
 }
