@@ -25,11 +25,28 @@ func (DispatchJob) Kind() string { return "dispatchr_dispatchJob" }
 
 type DispatchJobWorker struct {
 	river.WorkerDefaults[DispatchJob]
+	dispatcher *Dispatcher
+}
+
+func NewDispatchJobWorker() *DispatchJobWorker {
+	return &DispatchJobWorker{
+		dispatcher: NewDispatcher(),
+	}
 }
 
 func (w *DispatchJobWorker) Work(ctx context.Context, job *river.Job[DispatchJob]) error {
-	fmt.Println("Dispatching job", job.ID, "to", job.Args.UrlTarget, "with", job.Args.TaskName, "and", string(job.Args.TaskArgs))
-	return nil
+	result := w.dispatcher.Dispatch(ctx, job.Args.UrlTarget, job.Args.TaskName, job.Args.TaskArgs)
+
+	if result.Success {
+		return nil
+	}
+
+	if result.RetryAfter > 0 {
+		return river.JobSnooze(result.RetryAfter)
+	}
+
+	return fmt.Errorf(result.ErrorMessage)
+
 }
 
 func AddTaskExample(ctx context.Context, client *river.Client[pgx.Tx]) {
